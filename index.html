@@ -783,3 +783,227 @@ function deleteSpot(id) {
    コース生成ロジック（営業時間・混雑・昼食挿入）
    ========================================================= */
 function generateCourse
+  <script>
+// =========================================================
+// コース生成（前半）
+// =========================================================
+function generateCourse() {
+  const date = document.getElementById("date").value;
+  const startTime = document.getElementById("startTime").value || "09:00";
+  const endTime = document.getElementById("endTime").value || "18:00";
+  const vibe = document.getElementById("vibe").value;
+
+  const selectedThemes = [
+    ...document.querySelectorAll("#themeChips .chip.active")
+  ].map(c => c.dataset.value);
+
+  const transport =
+    document.querySelector("#transportChips .chip.active")?.dataset.value || "walk";
+
+  const startMin = parseTimeToMinutes(startTime);
+  const endMin = parseTimeToMinutes(endTime);
+  const totalAvailable = Math.max(endMin - startMin, 0);
+
+  if (totalAvailable < 120) {
+    timeline = [];
+    renderTimeline();
+    clearMarkers();
+    resultMeta.textContent = "時間が短すぎます。";
+    return;
+  }
+
+  const sunday = isSunday(date);
+
+  // -------------------------------
+  // ① 候補スポットのフィルタリング
+  // -------------------------------
+  let candidates = spots.filter((s) => {
+    if (s.onlySunday && !sunday) return false;
+    if (transport === "walk" && s.area === "遠方") return false;
+    return true;
+  });
+
+  // -------------------------------
+  // ② 営業時間チェック
+  // -------------------------------
+  candidates = candidates.filter((s) => {
+    const open = parseTimeToMinutes(s.open);
+    const close = parseTimeToMinutes(s.close);
+    const visitStart = startMin;
+    const visitEnd = endMin;
+
+    // 営業時間と全く重ならない場合は除外
+    if (visitEnd < open || visitStart > close) return false;
+
+    // 定休日
+    const weekday = ["sun","mon","tue","wed","thu","fri","sat"][new Date(date).getDay()];
+    if (s.closed.includes(weekday)) return false;
+
+    return true;
+  });
+
+  // -------------------------------
+  // ③ テーマスコアリング
+  // -------------------------------
+  const scored = candidates
+    .map((s) => {
+      let score = 0;
+
+      if (selectedThemes.length === 0) {
+        score = 1;
+      } else {
+        s.tags.forEach((t) => {
+          if (selectedThemes.includes(t)) score += 1;
+        });
+      }
+
+      // ローカル感は少し加点
+      if (s.tags.includes("local")) score += 0.3;
+
+      // 混雑時間帯（bestTime）を考慮
+      if (s.bestTime === "morning" && startMin < 12 * 60) score += 0.5;
+      if (s.bestTime === "noon" && startMin >= 11 * 60 && startMin <= 14 * 60) score += 0.5;
+      if (s.bestTime === "afternoon" && startMin >= 13 * 60) score += 0.5;
+
+      return { spot: s, score };
+    })
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (scored.length === 0) {
+    timeline = [];
+    renderTimeline();
+    clearMarkers();
+    resultMeta.textContent = "条件に合うスポットがありません。";
+    return;
+  }
+
+  // -------------------------------
+  // ④ 目標滞在時間
+  // -------------------------------
+  let targetMinutes;
+  if (vibe === "slow") targetMinutes = totalAvailable * 0.5;
+  else if (vibe === "dense") targetMinutes = totalAvailable * 0.9;
+  else targetMinutes = totalAvailable * 0.7;
+
+  // -------------------------------
+  // ⑤ スポット選定
+  // -------------------------------
+  const selected = [];
+  let usedMinutes = 0;
+
+  for (const { spot } of scored) {
+    const stay = spot.typicalStayMin;
+    if (usedMinutes + stay > targetMinutes + 45) continue;
+    selected.push(spot);
+    usedMinutes += stay;
+  }
+
+  if (selected.length === 0) {
+    selected.push(scored[0].spot);
+  }
+
+  // ここから後半へ続く
+  // -------------------------------
+  // ⑥ 昼食・カフェ自動挿入
+  // -------------------------------
+  let hasLunch = selected.some((s) => s.tags.includes("food"));
+  const lunchTimeStart = 11 * 60;
+  const lunchTimeEnd = 14 * 60;
+
+  if (!hasLunch) {
+    const lunchSpot = spots.find((s) => s.tags.includes("food") && s.area === "中心部");
+    if (lunchSpot) selected.splice(1, 0, lunchSpot);
+  }
+
+  // -------------------------------
+  // ⑦ 時間割り当て（移動時間含む）
+  // -------------------------------
+  timeline = [];
+  let current = startMin;
+
+  selected.forEach((spot, index) => {
+    let moveMin = 0;
+
+    if (index > 0) {
+      const prev = selected[index - 1];
+      moveMin = travelTimeMatrix[prev.area][spot.area] || 15;
+    }
+
+    const start = current + moveMin;
+    const end = Math.min(start + spot.typicalStayMin, endMin);
+
+    timeline.push({ spot, start, end, moveMin });
+    current = end;
+  });
+
+  renderTimeline();
+  addNumberedMarkers(timeline);
+
+  resultMeta.textContent = `スポット数：${timeline.length} / 滞在時間：約${(
+    timeline.reduce((a, b) => a + (b.end - b.start), 0) / 60
+  ).toFixed(1)}時間`;
+}
+  // =========================================================
+// タイムライン描画
+// =========================================================
+function renderTimeline() {
+  const container = document.getElementById("sortableTimeline");
+  container.innerHTML = "";
+
+  timeline.forEach((t) => {
+    const div = document.createElement("div");
+    div.className = "slot";
+    div.dataset.id = t.spot.id;
+
+    div.innerHTML = `
+      <div><strong>${t.spot.name}</strong></div>
+      <div class="time-range">
+        ${minutesToTimeStr(t.start)} 〜 ${minutesToTimeStr(t.end)}
+        <span class="move-time">（移動 ${t.moveMin}分）</span>
+      </div>
+      <div class="slot-delete" onclick="deleteSpot('${t.spot.id}')">削除</div>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+// =========================================================
+// 「＋追加」ボタン（候補リスト側）
+// =========================================================
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("spot-add-btn")) {
+    const id = e.target.dataset.id;
+    addSpotById(id);
+  }
+});
+
+// =========================================================
+// テーマ選択（チップの ON/OFF）
+// =========================================================
+document.querySelectorAll("#themeChips .chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    chip.classList.toggle("active");
+  });
+});
+
+// =========================================================
+// 移動手段（チップの単一選択）
+// =========================================================
+document.querySelectorAll("#transportChips .chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    document
+      .querySelectorAll("#transportChips .chip")
+      .forEach((c) => c.classList.remove("active"));
+    chip.classList.add("active");
+  });
+});
+
+// =========================================================
+// 「この条件でつくる」ボタン
+// =========================================================
+document.getElementById("generateBtn").addEventListener("click", () => {
+  generateCourse();
+});
+</script>
