@@ -1,6 +1,8 @@
+<!DOCTYPE html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>高知1日モデルコースメーカー（完全版）</title>
+  <title>高知1日モデルコースメーカー（簡潔・完全版）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Leaflet -->
@@ -14,7 +16,7 @@
     crossorigin=""
   ></script>
 
-  <!-- SortableJS（ドラッグ並び替え） -->
+  <!-- SortableJS -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
   <style>
@@ -66,6 +68,125 @@
       border: 1px solid rgba(148, 163, 184, 0.25);
     }
 
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.4rem;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+      color: var(--text-sub);
+    }
+
+    input[type="date"],
+    input[type="time"],
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+
+    .inline-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .inline-group > div {
+      flex: 1;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: #f9fafb;
+      color: var(--text-sub);
+    }
+
+    .chip.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    #generateBtn {
+      margin-top: 12px;
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .badge {
+      background: #e0f2fe;
+      color: #0369a1;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.7rem;
+    }
+
+    .empty-state {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .result-meta {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      text-align: right;
+    }
+
+    .footer-note {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: var(--text-sub);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #fee2e2;
+      color: #b91c1c;
+      font-size: 0.7rem;
+      margin-right: 4px;
+    }
+
     /* 折り畳み候補リスト */
     .collapsible-header {
       display: flex;
@@ -74,12 +195,14 @@
       cursor: pointer;
       padding: 10px 0;
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 0.95rem;
+      margin-top: 12px;
+      border-top: 1px solid var(--border);
     }
 
     .collapsible-content {
       display: none;
-      margin-top: 10px;
+      margin-top: 8px;
     }
 
     .spot-item {
@@ -87,7 +210,7 @@
       justify-content: space-between;
       padding: 6px 0;
       border-bottom: 1px solid var(--border);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
 
     .spot-add-btn {
@@ -97,17 +220,17 @@
       border-radius: 6px;
       padding: 4px 8px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
     }
 
-    /* 検索バー */
     .search-box {
       width: 100%;
       padding: 8px 10px;
       border-radius: 8px;
       border: 1px solid var(--border);
-      margin-bottom: 10px;
-      font-size: 0.9rem;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      box-sizing: border-box;
     }
 
     /* 地図 */
@@ -120,7 +243,6 @@
       overflow: hidden;
     }
 
-    /* 番号付きピン */
     .marker-number {
       background: #ef4444;
       color: #fff;
@@ -136,37 +258,32 @@
       box-shadow: 0 0 4px rgba(0,0,0,0.4);
     }
 
-    /* 追加モードボタン */
-    .add-mode-btn {
-      margin-top: 10px;
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      background: var(--accent);
-      color: #fff;
-      font-size: 0.9rem;
-      cursor: pointer;
-    }
-
-    /* 現在地ボタン */
+    .add-mode-btn,
     .locate-btn {
       margin-top: 10px;
       width: 100%;
       padding: 10px;
       border-radius: 8px;
       border: none;
-      background: var(--primary);
       color: #fff;
       font-size: 0.9rem;
       cursor: pointer;
     }
 
-    /* タイムライン（Sortable対応） */
+    .add-mode-btn {
+      background: var(--accent);
+    }
+
+    .locate-btn {
+      background: var(--primary);
+    }
+
+    /* タイムライン */
     .timeline {
       border-left: 2px solid rgba(148, 163, 184, 0.6);
       padding-left: 12px;
       margin-top: 8px;
+      min-height: 40px;
     }
 
     .slot {
@@ -175,14 +292,15 @@
       padding-left: 4px;
       background: #f9fafb;
       border-radius: 8px;
-      padding: 10px;
+      padding: 8px 10px;
+      font-size: 0.85rem;
     }
 
     .slot::before {
       content: "";
       position: absolute;
       left: -14px;
-      top: 14px;
+      top: 12px;
       width: 10px;
       height: 10px;
       border-radius: 999px;
@@ -190,9 +308,20 @@
       border: 2px solid var(--primary);
     }
 
+    .time-range {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+    }
+
+    .move-time {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-left: 4px;
+    }
+
     .slot-delete {
       color: #ef4444;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       cursor: pointer;
       margin-top: 4px;
       display: inline-block;
@@ -201,7 +330,7 @@
 </head>
 <body>
   <header>
-    <h1>高知1日モデルコースメーカー（完全版）</h1>
+    <h1>高知1日モデルコースメーカー（完全版・簡潔）</h1>
     <p>気分と時間を選ぶだけで、高知の1日旅プランを自動生成＋自由編集。</p>
   </header>
 
@@ -251,7 +380,7 @@
         この条件でモデルコースをつくる ✨
       </button>
 
-      <!-- ▼ 折り畳み候補リスト -->
+      <!-- 折り畳み候補リスト -->
       <div class="collapsible-header" id="candidateToggle">
         <span>▶ スポット候補一覧</span>
         <span id="candidateCount"></span>
@@ -264,7 +393,6 @@
           class="search-box"
           placeholder="スポット名で検索"
         />
-
         <div id="candidateItems"></div>
       </div>
     </section>
@@ -278,23 +406,16 @@
         </div>
       </div>
 
-      <div id="timelineContainer">
+      <div id="sortableTimeline" class="timeline">
         <p class="empty-state">
           ひろめ市場でカツオを食べる？ 高知城で歴史に浸る？ 桂浜で海を眺める？<br />
           あなたの「今日の気分」に合わせて、1日コースを自動で組み立てます。
         </p>
       </div>
 
-      <!-- 並び替え可能なタイムライン -->
-      <div id="sortableTimeline" class="timeline"></div>
-
-      <!-- 地図 -->
       <div id="map"></div>
 
-      <!-- 追加モード -->
       <button class="add-mode-btn" id="addModeBtn">追加モード：OFF</button>
-
-      <!-- 現在地表示 -->
       <button class="locate-btn" id="locateBtn">現在地を表示</button>
 
       <div class="footer-note">
@@ -303,707 +424,491 @@
       </div>
     </section>
   </main>
-</body>
-<script>
-/* =========================================================
-   スポットデータ（営業時間・混雑時間帯・カテゴリ追加）
-   ========================================================= */
-const spots = [
-  {
-    id: "kochi-castle",
-    name: "高知城・高知城歴史博物館",
-    tags: ["history", "local"],
-    area: "中心部",
-    typicalStayMin: 90,
-    lat: 33.5593,
-    lng: 133.5311,
-    description: "天守から高知市内を一望。歴史博物館とセットで楽しめる。",
-    open: "09:00",
-    close: "17:00",
-    closed: [],
-    bestTime: "morning",
-  },
-  {
-    id: "hirome",
-    name: "ひろめ市場",
-    tags: ["food", "local"],
-    area: "中心部",
-    typicalStayMin: 60,
-    lat: 33.5590,
-    lng: 133.5319,
-    description: "カツオのたたきやご当地グルメが集まる人気スポット。",
-    open: "10:00",
-    close: "22:00",
-    closed: [],
-    bestTime: "noon",
-  },
-  {
-    id: "sunday-market",
-    name: "日曜市",
-    tags: ["local", "food"],
-    area: "中心部",
-    typicalStayMin: 60,
-    lat: 33.5595,
-    lng: 133.5310,
-    description: "約1km続く青空市。野菜・果物・田舎寿司など。",
-    onlySunday: true,
-    open: "05:00",
-    close: "15:00",
-    closed: [],
-    bestTime: "morning",
-  },
-  {
-    id: "harimaya",
-    name: "はりまや橋・商店街",
-    tags: ["local", "history"],
-    area: "中心部",
-    typicalStayMin: 30,
-    lat: 33.5598,
-    lng: 133.5410,
-    description: "高知の象徴的スポット。周辺の商店街も散策に最適。",
-    open: "00:00",
-    close: "23:59",
-    closed: [],
-    bestTime: "afternoon",
-  },
-  {
-    id: "cafe",
-    name: "まったりカフェタイム（中心部）",
-    tags: ["relax", "local", "food"],
-    area: "中心部",
-    typicalStayMin: 60,
-    lat: 33.5592,
-    lng: 133.5350,
-    description: "喫茶文化が根付く高知でゆっくり休憩。",
-    open: "09:00",
-    close: "18:00",
-    closed: [],
-    bestTime: "afternoon",
-  },
-  {
-    id: "makino",
-    name: "高知県立牧野植物園",
-    tags: ["nature", "relax"],
-    area: "五台山",
-    typicalStayMin: 120,
-    lat: 33.5598,
-    lng: 133.5564,
-    description: "牧野富太郎ゆかりの植物園。四季の花が美しい。",
-    open: "09:00",
-    close: "17:00",
-    closed: ["tue"],
-    bestTime: "morning",
-  },
-  {
-    id: "godaisan-temple",
-    name: "竹林寺（五台山）",
-    tags: ["history", "relax"],
-    area: "五台山",
-    typicalStayMin: 60,
-    lat: 33.5587,
-    lng: 133.5550,
-    description: "四国霊場31番札所。静かな時間を過ごせる寺院。",
-    open: "08:00",
-    close: "17:00",
-    closed: [],
-    bestTime: "morning",
-  },
-  {
-    id: "godaisan-view",
-    name: "五台山展望台",
-    tags: ["nature", "relax"],
-    area: "五台山",
-    typicalStayMin: 30,
-    lat: 33.5608,
-    lng: 133.5575,
-    description: "高知市街を一望できる絶景スポット。",
-    open: "00:00",
-    close: "23:59",
-    closed: [],
-    bestTime: "afternoon",
-  },
-  {
-    id: "katsurahama",
-    name: "桂浜・坂本龍馬像",
-    tags: ["nature", "history"],
-    area: "桂浜",
-    typicalStayMin: 120,
-    lat: 33.4964,
-    lng: 133.5730,
-    description: "太平洋を望む景勝地。龍馬像も人気。",
-    open: "00:00",
-    close: "23:59",
-    closed: [],
-    bestTime: "morning",
-  },
-  {
-    id: "ryoma-museum",
-    name: "高知県立坂本龍馬記念館",
-    tags: ["history"],
-    area: "桂浜",
-    typicalStayMin: 90,
-    lat: 33.4978,
-    lng: 133.5745,
-    description: "龍馬の生涯と幕末史を深く学べる博物館。",
-    open: "09:00",
-    close: "17:00",
-    closed: [],
-    bestTime: "afternoon",
-  },
-  {
-    id: "katsurahama-aquarium",
-    name: "桂浜水族館",
-    tags: ["nature", "local"],
-    area: "桂浜",
-    typicalStayMin: 60,
-    lat: 33.4955,
-    lng: 133.5735,
-    description: "ローカル感あふれる水族館。動物との距離が近い。",
-    open: "09:00",
-    close: "17:00",
-    closed: [],
-    bestTime: "noon",
-  },
-  {
-    id: "asakura",
-    name: "朝倉エリア散策（大学周辺）",
-    tags: ["local", "relax"],
-    area: "郊外",
-    typicalStayMin: 60,
-    lat: 33.5535,
-    lng: 133.5030,
-    description: "学生街のカフェや書店が点在する落ち着いたエリア。",
-    open: "00:00",
-    close: "23:59",
-    closed: [],
-    bestTime: "afternoon",
-  },
-  {
-    id: "inari",
-    name: "秦神社・稲荷神社",
-    tags: ["history", "local"],
-    area: "郊外",
-    typicalStayMin: 40,
-    lat: 33.5530,
-    lng: 133.5150,
-    description: "地元に愛される神社で静かな時間を。",
-    open: "00:00",
-    close: "23:59",
-    closed: [],
-    bestTime: "morning",
-  },
-  {
-    id: "tosanosato",
-    name: "とさのさと（産直市場）",
-    tags: ["food", "local"],
-    area: "郊外",
-    typicalStayMin: 45,
-    lat: 33.5655,
-    lng: 133.5465,
-    description: "新鮮な野菜や特産品が揃う大型産直。",
-    open: "09:00",
-    close: "18:00",
-    closed: [],
-    bestTime: "morning",
-  },
-  {
-    id: "ryugado",
-    name: "龍河洞（香美市）",
-    tags: ["nature", "history"],
-    area: "遠方",
-    typicalStayMin: 120,
-    lat: 33.6120,
-    lng: 133.7020,
-    description: "日本三大鍾乳洞のひとつ。探検気分を味わえる。",
-    open: "09:00",
-    close: "17:00",
-    closed: [],
-    bestTime: "morning",
-  },
-  {
-    id: "anpanman",
-    name: "アンパンマンミュージアム（香美市）",
-    tags: ["local", "relax"],
-    area: "遠方",
-    typicalStayMin: 120,
-    lat: 33.5675,
-    lng: 133.7025,
-    description: "やなせたかしの世界を楽しめるミュージアム。",
-    open: "09:30",
-    close: "17:00",
-    closed: ["tue"],
-    bestTime: "afternoon",
-  },
-  {
-    id: "niyodo",
-    name: "仁淀川ブルー（いの町）",
-    tags: ["nature"],
-    area: "遠方",
-    typicalStayMin: 120,
-    lat: 33.5650,
-    lng: 133.3550,
-    description: "透明度抜群の清流。川辺散策や写真撮影に最適。",
-    open: "00:00",
-    close: "23:59",
-    closed: [],
-    bestTime: "morning",
-  },
-  {
-    id: "tosayama",
-    name: "土佐山アクティビティ（温泉・カフェ）",
-    tags: ["nature", "relax"],
-    area: "遠方",
-    typicalStayMin: 120,
-    lat: 33.6060,
-    lng: 133.4450,
-    description: "山間の静かなエリアで自然と温泉を楽しめる。",
-    open: "10:00",
-    close: "18:00",
-    closed: [],
-    bestTime: "afternoon",
-  },
-];
 
-/* =========================================================
-   エリア間移動時間
-   ========================================================= */
-const travelTimeMatrix = {
-  "中心部": { "中心部": 10, "五台山": 20, "桂浜": 35, "郊外": 20, "遠方": 50 },
-  "五台山": { "中心部": 20, "五台山": 10, "桂浜": 25, "郊外": 30, "遠方": 60 },
-  "桂浜": { "中心部": 35, "五台山": 25, "桂浜": 10, "郊外": 40, "遠方": 70 },
-  "郊外": { "中心部": 20, "五台山": 30, "桂浜": 40, "郊外": 10, "遠方": 50 },
-  "遠方": { "中心部": 50, "五台山": 60, "桂浜": 70, "郊外": 50, "遠方": 20 },
-};
-
-/* =========================================================
-   ユーティリティ
-   ========================================================= */
-function parseTimeToMinutes(t) {
-  const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
-}
-function minutesToTimeStr(mins) {
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
-function isSunday(dateStr) {
-  if (!dateStr) return false;
-  return new Date(dateStr).getDay() === 0;
-}
-
-/* =========================================================
-   Leaflet 地図
-   ========================================================= */
-let map = L.map("map").setView([33.5593, 133.5311], 12);
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19,
-}).addTo(map);
-
-let markerLayer = L.layerGroup().addTo(map);
-let candidateLayer = L.layerGroup().addTo(map);
-candidateLayer.clearLayers();
-
-function clearMarkers() {
-  markerLayer.clearLayers();
-}
-
-function addNumberedMarkers(timeline) {
-  clearMarkers();
-  const bounds = [];
-
-  timeline.forEach((t, index) => {
-    const num = index + 1;
-    const icon = L.divIcon({
-      className: "",
-      html: `<div class="marker-number">${num}</div>`,
-      iconSize: [26, 26],
-      iconAnchor: [13, 13],
-    });
-
-    const marker = L.marker([t.spot.lat, t.spot.lng], { icon }).addTo(markerLayer);
-
-    const gmapUrl = `https://www.google.com/maps/dir/?api=1&destination=${t.spot.lat},${t.spot.lng}`;
-    marker.bindPopup(`
-      <strong>${num}. ${t.spot.name}</strong><br/>
-      ${t.spot.description}<br/>
-      <a href="${gmapUrl}" target="_blank">現在地からのルートを見る</a>
-    `);
-
-    bounds.push([t.spot.lat, t.spot.lng]);
-  });
-
-  if (bounds.length === 1) {
-    map.setView(bounds[0], 14);
-  } else if (bounds.length > 1) {
-    map.fitBounds(bounds, { padding: [30, 30] });
-  }
-}
-
-/* =========================================================
-   現在地表示
-   ========================================================= */
-let userMarker = null;
-
-document.getElementById("locateBtn").addEventListener("click", () => {
-  if (!navigator.geolocation) {
-    alert("位置情報が利用できません");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition((pos) => {
-    const { latitude, longitude } = pos.coords;
-
-    if (userMarker) map.removeLayer(userMarker);
-
-    userMarker = L.circleMarker([latitude, longitude], {
-      radius: 8,
-      color: "#0ea5e9",
-      fillColor: "#38bdf8",
-      fillOpacity: 0.8,
-    }).addTo(map);
-
-    map.setView([latitude, longitude], 14);
-  });
-});
-
-/* =========================================================
-   候補リスト（折り畳み＋検索）
-   ========================================================= */
-const candidateToggle = document.getElementById("candidateToggle");
-const candidateList = document.getElementById("candidateList");
-const candidateItems = document.getElementById("candidateItems");
-const candidateSearch = document.getElementById("candidateSearch");
-
-candidateToggle.addEventListener("click", () => {
-  const isOpen = candidateList.style.display === "block";
-  candidateList.style.display = isOpen ? "none" : "block";
-  candidateToggle.children[0].textContent = isOpen
-    ? "▶ スポット候補一覧"
-    : "▼ スポット候補一覧";
-});
-
-function renderCandidateList() {
-  candidateItems.innerHTML = "";
-  const keyword = candidateSearch.value.trim().toLowerCase();
-
-  const filtered = spots.filter((s) =>
-    s.name.toLowerCase().includes(keyword)
-  );
-
-  document.getElementById("candidateCount").textContent = `（${filtered.length}件）`;
-
-  filtered.forEach((s) => {
-    const div = document.createElement("div");
-    div.className = "spot-item";
-    div.innerHTML = `
-      <span>${s.name}</span>
-      <button class="spot-add-btn" data-id="${s.id}">＋追加</button>
-    `;
-    candidateItems.appendChild(div);
-  });
-}
-
-candidateSearch.addEventListener("input", renderCandidateList);
-renderCandidateList();
-
-/* =========================================================
-   追加モード（地図に候補ピン表示）
-   ========================================================= */
-let addMode = false;
-
-document.getElementById("addModeBtn").addEventListener("click", () => {
-  addMode = !addMode;
-  document.getElementById("addModeBtn").textContent =
-    addMode ? "追加モード：ON" : "追加モード：OFF";
-
-  candidateLayer.clearLayers();
-
-  if (addMode) {
-    spots.forEach((s) => {
-      const marker = L.circleMarker([s.lat, s.lng], {
-        radius: 6,
-        color: "#f97316",
-        fillColor: "#fb923c",
-        fillOpacity: 0.8,
-      }).addTo(candidateLayer);
-
-      marker.bindPopup(`
-        <strong>${s.name}</strong><br/>
-        <button onclick="addSpotById('${s.id}')">このスポットを追加</button>
-      `);
-    });
-  }
-});
-
-/* =========================================================
-   タイムライン（SortableJS）
-   ========================================================= */
-let timeline = [];
-
-const sortable = new Sortable(document.getElementById("sortableTimeline"), {
-  animation: 150,
-  onEnd: () => {
-    const newOrder = [];
-    document.querySelectorAll(".slot").forEach((el) => {
-      const id = el.dataset.id;
-      const item = timeline.find((t) => t.spot.id === id);
-      if (item) newOrder.push(item);
-    });
-    timeline = newOrder;
-    addNumberedMarkers(timeline);
-  },
-});
-
-/* =========================================================
-   スポット追加・削除
-   ========================================================= */
-function addSpotById(id) {
-  const spot = spots.find((s) => s.id === id);
-  if (!spot) return;
-
-  timeline.push({
-    spot,
-    start: 0,
-    end: 0,
-    moveMin: 0,
-  });
-
-  renderTimeline();
-  addNumberedMarkers(timeline);
-}
-
-function deleteSpot(id) {
-  timeline = timeline.filter((t) => t.spot.id !== id);
-  renderTimeline();
-  addNumberedMarkers(timeline);
-}
-
-/* =========================================================
-   コース生成ロジック（営業時間・混雑・昼食挿入）
-   ========================================================= */
-function generateCourse
   <script>
-// =========================================================
-// コース生成（前半）
-// =========================================================
-function generateCourse() {
-  const date = document.getElementById("date").value;
-  const startTime = document.getElementById("startTime").value || "09:00";
-  const endTime = document.getElementById("endTime").value || "18:00";
-  const vibe = document.getElementById("vibe").value;
+    // ---------- データ ----------
+    const spots = [
+      {
+        id: "kochi-castle",
+        name: "高知城・高知城歴史博物館",
+        tags: ["history", "local"],
+        area: "中心部",
+        typicalStayMin: 90,
+        lat: 33.5593,
+        lng: 133.5311,
+        description: "天守から高知市内を一望。歴史博物館とセットで楽しめる。",
+        open: "09:00",
+        close: "17:00",
+        closed: [],
+        bestTime: "morning",
+      },
+      {
+        id: "hirome",
+        name: "ひろめ市場",
+        tags: ["food", "local"],
+        area: "中心部",
+        typicalStayMin: 60,
+        lat: 33.5590,
+        lng: 133.5319,
+        description: "カツオのたたきやご当地グルメが集まる人気スポット。",
+        open: "10:00",
+        close: "22:00",
+        closed: [],
+        bestTime: "noon",
+      },
+      {
+        id: "sunday-market",
+        name: "日曜市",
+        tags: ["local", "food"],
+        area: "中心部",
+        typicalStayMin: 60,
+        lat: 33.5595,
+        lng: 133.5310,
+        description: "約1km続く青空市。野菜・果物・田舎寿司など。",
+        onlySunday: true,
+        open: "05:00",
+        close: "15:00",
+        closed: [],
+        bestTime: "morning",
+      },
+      {
+        id: "harimaya",
+        name: "はりまや橋・商店街",
+        tags: ["local", "history"],
+        area: "中心部",
+        typicalStayMin: 30,
+        lat: 33.5598,
+        lng: 133.5410,
+        description: "高知の象徴的スポット。周辺の商店街も散策に最適。",
+        open: "00:00",
+        close: "23:59",
+        closed: [],
+        bestTime: "afternoon",
+      },
+      {
+        id: "cafe",
+        name: "まったりカフェタイム（中心部）",
+        tags: ["relax", "local", "food"],
+        area: "中心部",
+        typicalStayMin: 60,
+        lat: 33.5592,
+        lng: 133.5350,
+        description: "喫茶文化が根付く高知でゆっくり休憩。",
+        open: "09:00",
+        close: "18:00",
+        closed: [],
+        bestTime: "afternoon",
+      },
+      {
+        id: "makino",
+        name: "高知県立牧野植物園",
+        tags: ["nature", "relax"],
+        area: "五台山",
+        typicalStayMin: 120,
+        lat: 33.5598,
+        lng: 133.5564,
+        description: "牧野富太郎ゆかりの植物園。四季の花が美しい。",
+        open: "09:00",
+        close: "17:00",
+        closed: ["tue"],
+        bestTime: "morning",
+      },
+      {
+        id: "katsurahama",
+        name: "桂浜・坂本龍馬像",
+        tags: ["nature", "history"],
+        area: "桂浜",
+        typicalStayMin: 120,
+        lat: 33.4964,
+        lng: 133.5730,
+        description: "太平洋を望む景勝地。龍馬像も人気。",
+        open: "00:00",
+        close: "23:59",
+        closed: [],
+        bestTime: "morning",
+      },
+      {
+        id: "katsurahama-aquarium",
+        name: "桂浜水族館",
+        tags: ["nature", "local"],
+        area: "桂浜",
+        typicalStayMin: 60,
+        lat: 33.4955,
+        lng: 133.5735,
+        description: "ローカル感あふれる水族館。動物との距離が近い。",
+        open: "09:00",
+        close: "17:00",
+        closed: [],
+        bestTime: "noon",
+      },
+    ];
 
-  const selectedThemes = [
-    ...document.querySelectorAll("#themeChips .chip.active")
-  ].map(c => c.dataset.value);
+    const travelTimeMatrix = {
+      "中心部": { "中心部": 10, "五台山": 20, "桂浜": 35 },
+      "五台山": { "中心部": 20, "五台山": 10, "桂浜": 25 },
+      "桂浜": { "中心部": 35, "五台山": 25, "桂浜": 10 },
+    };
 
-  const transport =
-    document.querySelector("#transportChips .chip.active")?.dataset.value || "walk";
+    const resultMeta = document.getElementById("resultMeta");
+    let timeline = [];
 
-  const startMin = parseTimeToMinutes(startTime);
-  const endMin = parseTimeToMinutes(endTime);
-  const totalAvailable = Math.max(endMin - startMin, 0);
-
-  if (totalAvailable < 120) {
-    timeline = [];
-    renderTimeline();
-    clearMarkers();
-    resultMeta.textContent = "時間が短すぎます。";
-    return;
-  }
-
-  const sunday = isSunday(date);
-
-  // -------------------------------
-  // ① 候補スポットのフィルタリング
-  // -------------------------------
-  let candidates = spots.filter((s) => {
-    if (s.onlySunday && !sunday) return false;
-    if (transport === "walk" && s.area === "遠方") return false;
-    return true;
-  });
-
-  // -------------------------------
-  // ② 営業時間チェック
-  // -------------------------------
-  candidates = candidates.filter((s) => {
-    const open = parseTimeToMinutes(s.open);
-    const close = parseTimeToMinutes(s.close);
-    const visitStart = startMin;
-    const visitEnd = endMin;
-
-    // 営業時間と全く重ならない場合は除外
-    if (visitEnd < open || visitStart > close) return false;
-
-    // 定休日
-    const weekday = ["sun","mon","tue","wed","thu","fri","sat"][new Date(date).getDay()];
-    if (s.closed.includes(weekday)) return false;
-
-    return true;
-  });
-
-  // -------------------------------
-  // ③ テーマスコアリング
-  // -------------------------------
-  const scored = candidates
-    .map((s) => {
-      let score = 0;
-
-      if (selectedThemes.length === 0) {
-        score = 1;
-      } else {
-        s.tags.forEach((t) => {
-          if (selectedThemes.includes(t)) score += 1;
-        });
-      }
-
-      // ローカル感は少し加点
-      if (s.tags.includes("local")) score += 0.3;
-
-      // 混雑時間帯（bestTime）を考慮
-      if (s.bestTime === "morning" && startMin < 12 * 60) score += 0.5;
-      if (s.bestTime === "noon" && startMin >= 11 * 60 && startMin <= 14 * 60) score += 0.5;
-      if (s.bestTime === "afternoon" && startMin >= 13 * 60) score += 0.5;
-
-      return { spot: s, score };
-    })
-    .filter((s) => s.score > 0)
-    .sort((a, b) => b.score - a.score);
-
-  if (scored.length === 0) {
-    timeline = [];
-    renderTimeline();
-    clearMarkers();
-    resultMeta.textContent = "条件に合うスポットがありません。";
-    return;
-  }
-
-  // -------------------------------
-  // ④ 目標滞在時間
-  // -------------------------------
-  let targetMinutes;
-  if (vibe === "slow") targetMinutes = totalAvailable * 0.5;
-  else if (vibe === "dense") targetMinutes = totalAvailable * 0.9;
-  else targetMinutes = totalAvailable * 0.7;
-
-  // -------------------------------
-  // ⑤ スポット選定
-  // -------------------------------
-  const selected = [];
-  let usedMinutes = 0;
-
-  for (const { spot } of scored) {
-    const stay = spot.typicalStayMin;
-    if (usedMinutes + stay > targetMinutes + 45) continue;
-    selected.push(spot);
-    usedMinutes += stay;
-  }
-
-  if (selected.length === 0) {
-    selected.push(scored[0].spot);
-  }
-
-  // ここから後半へ続く
-  // -------------------------------
-  // ⑥ 昼食・カフェ自動挿入
-  // -------------------------------
-  let hasLunch = selected.some((s) => s.tags.includes("food"));
-  const lunchTimeStart = 11 * 60;
-  const lunchTimeEnd = 14 * 60;
-
-  if (!hasLunch) {
-    const lunchSpot = spots.find((s) => s.tags.includes("food") && s.area === "中心部");
-    if (lunchSpot) selected.splice(1, 0, lunchSpot);
-  }
-
-  // -------------------------------
-  // ⑦ 時間割り当て（移動時間含む）
-  // -------------------------------
-  timeline = [];
-  let current = startMin;
-
-  selected.forEach((spot, index) => {
-    let moveMin = 0;
-
-    if (index > 0) {
-      const prev = selected[index - 1];
-      moveMin = travelTimeMatrix[prev.area][spot.area] || 15;
+    function parseTimeToMinutes(t) {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    }
+    function minutesToTimeStr(mins) {
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    }
+    function isSunday(dateStr) {
+      if (!dateStr) return false;
+      return new Date(dateStr).getDay() === 0;
     }
 
-    const start = current + moveMin;
-    const end = Math.min(start + spot.typicalStayMin, endMin);
+    // ---------- 地図 ----------
+    const map = L.map("map").setView([33.5593, 133.5311], 12);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+    }).addTo(map);
 
-    timeline.push({ spot, start, end, moveMin });
-    current = end;
-  });
+    const markerLayer = L.layerGroup().addTo(map);
+    const candidateLayer = L.layerGroup().addTo(map);
+    let userMarker = null;
 
-  renderTimeline();
-  addNumberedMarkers(timeline);
+    function clearMarkers() {
+      markerLayer.clearLayers();
+    }
 
-  resultMeta.textContent = `スポット数：${timeline.length} / 滞在時間：約${(
-    timeline.reduce((a, b) => a + (b.end - b.start), 0) / 60
-  ).toFixed(1)}時間`;
-}
-  // =========================================================
-// タイムライン描画
-// =========================================================
-function renderTimeline() {
-  const container = document.getElementById("sortableTimeline");
-  container.innerHTML = "";
+    function addNumberedMarkers(tl) {
+      clearMarkers();
+      const bounds = [];
+      tl.forEach((t, index) => {
+        const num = index + 1;
+        const icon = L.divIcon({
+          className: "",
+          html: `<div class="marker-number">${num}</div>`,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13],
+        });
+        const marker = L.marker([t.spot.lat, t.spot.lng], { icon }).addTo(markerLayer);
+        const gmapUrl = `https://www.google.com/maps/dir/?api=1&destination=${t.spot.lat},${t.spot.lng}`;
+        marker.bindPopup(`
+          <strong>${num}. ${t.spot.name}</strong><br/>
+          ${t.spot.description}<br/>
+          <a href="${gmapUrl}" target="_blank">現在地からのルートを見る</a>
+        `);
+        bounds.push([t.spot.lat, t.spot.lng]);
+      });
+      if (bounds.length === 1) {
+        map.setView(bounds[0], 14);
+      } else if (bounds.length > 1) {
+        map.fitBounds(bounds, { padding: [30, 30] });
+      }
+    }
 
-  timeline.forEach((t) => {
-    const div = document.createElement("div");
-    div.className = "slot";
-    div.dataset.id = t.spot.id;
+    // 現在地
+    document.getElementById("locateBtn").addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        alert("位置情報が利用できません");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const { latitude, longitude } = pos.coords;
+        if (userMarker) map.removeLayer(userMarker);
+        userMarker = L.circleMarker([latitude, longitude], {
+          radius: 8,
+          color: "#0ea5e9",
+          fillColor: "#38bdf8",
+          fillOpacity: 0.8,
+        }).addTo(map);
+        map.setView([latitude, longitude], 14);
+      });
+    });
 
-    div.innerHTML = `
-      <div><strong>${t.spot.name}</strong></div>
-      <div class="time-range">
-        ${minutesToTimeStr(t.start)} 〜 ${minutesToTimeStr(t.end)}
-        <span class="move-time">（移動 ${t.moveMin}分）</span>
-      </div>
-      <div class="slot-delete" onclick="deleteSpot('${t.spot.id}')">削除</div>
-    `;
+    // ---------- 候補リスト（折り畳み＋検索） ----------
+    const candidateToggle = document.getElementById("candidateToggle");
+    const candidateList = document.getElementById("candidateList");
+    const candidateItems = document.getElementById("candidateItems");
+    const candidateSearch = document.getElementById("candidateSearch");
+    const candidateCount = document.getElementById("candidateCount");
 
-    container.appendChild(div);
-  });
-}
+    candidateToggle.addEventListener("click", () => {
+      const isOpen = candidateList.style.display === "block";
+      candidateList.style.display = isOpen ? "none" : "block";
+      candidateToggle.children[0].textContent = isOpen
+        ? "▶ スポット候補一覧"
+        : "▼ スポット候補一覧";
+    });
 
-// =========================================================
-// 「＋追加」ボタン（候補リスト側）
-// =========================================================
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("spot-add-btn")) {
-    const id = e.target.dataset.id;
-    addSpotById(id);
-  }
-});
+    function renderCandidateList() {
+      candidateItems.innerHTML = "";
+      const keyword = candidateSearch.value.trim().toLowerCase();
+      const filtered = spots.filter((s) =>
+        s.name.toLowerCase().includes(keyword)
+      );
+      candidateCount.textContent = `（${filtered.length}件）`;
+      filtered.forEach((s) => {
+        const div = document.createElement("div");
+        div.className = "spot-item";
+        div.innerHTML = `
+          <span>${s.name}</span>
+          <button class="spot-add-btn" data-id="${s.id}">＋追加</button>
+        `;
+        candidateItems.appendChild(div);
+      });
+    }
+    candidateSearch.addEventListener("input", renderCandidateList);
+    renderCandidateList();
 
-// =========================================================
-// テーマ選択（チップの ON/OFF）
-// =========================================================
-document.querySelectorAll("#themeChips .chip").forEach((chip) => {
-  chip.addEventListener("click", () => {
-    chip.classList.toggle("active");
-  });
-});
+    // ---------- 追加モード ----------
+    let addMode = false;
+    document.getElementById("addModeBtn").addEventListener("click", () => {
+      addMode = !addMode;
+      document.getElementById("addModeBtn").textContent =
+        addMode ? "追加モード：ON" : "追加モード：OFF";
+      candidateLayer.clearLayers();
+      if (addMode) {
+        spots.forEach((s) => {
+          const marker = L.circleMarker([s.lat, s.lng], {
+            radius: 6,
+            color: "#f97316",
+            fillColor: "#fb923c",
+            fillOpacity: 0.8,
+          }).addTo(candidateLayer);
+          marker.bindPopup(`
+            <strong>${s.name}</strong><br/>
+            <button onclick="addSpotById('${s.id}')">このスポットを追加</button>
+          `);
+        });
+      }
+    });
 
-// =========================================================
-// 移動手段（チップの単一選択）
-// =========================================================
-document.querySelectorAll("#transportChips .chip").forEach((chip) => {
-  chip.addEventListener("click", () => {
-    document
-      .querySelectorAll("#transportChips .chip")
-      .forEach((c) => c.classList.remove("active"));
-    chip.classList.add("active");
-  });
-});
+    // ---------- タイムライン（Sortable） ----------
+    const sortable = new Sortable(document.getElementById("sortableTimeline"), {
+      animation: 150,
+      onEnd: () => {
+        const newOrder = [];
+        document.querySelectorAll(".slot").forEach((el) => {
+          const id = el.dataset.id;
+          const item = timeline.find((t) => t.spot.id === id);
+          if (item) newOrder.push(item);
+        });
+        timeline = newOrder;
+        addNumberedMarkers(timeline);
+      },
+    });
 
-// =========================================================
-// 「この条件でつくる」ボタン
-// =========================================================
-document.getElementById("generateBtn").addEventListener("click", () => {
-  generateCourse();
-});
-</script>
+    function addSpotById(id) {
+      const spot = spots.find((s) => s.id === id);
+      if (!spot) return;
+      timeline.push({
+        spot,
+        start: 0,
+        end: 0,
+        moveMin: 0,
+      });
+      layoutTimelineTimes();
+      renderTimeline();
+      addNumberedMarkers(timeline);
+    }
+
+    function deleteSpot(id) {
+      timeline = timeline.filter((t) => t.spot.id !== id);
+      layoutTimelineTimes();
+      renderTimeline();
+      addNumberedMarkers(timeline);
+    }
+
+    // ---------- コース生成 ----------
+    function generateCourse() {
+      const date = document.getElementById("date").value;
+      const startTime = document.getElementById("startTime").value || "09:00";
+      const endTime = document.getElementById("endTime").value || "18:00";
+      const vibe = document.getElementById("vibe").value;
+      const selectedThemes = [
+        ...document.querySelectorAll("#themeChips .chip.active")
+      ].map(c => c.dataset.value);
+      const transport =
+        document.querySelector("#transportChips .chip.active")?.dataset.value || "walk";
+
+      const startMin = parseTimeToMinutes(startTime);
+      const endMin = parseTimeToMinutes(endTime);
+      const totalAvailable = Math.max(endMin - startMin, 0);
+      if (totalAvailable < 120) {
+        timeline = [];
+        renderTimeline();
+        clearMarkers();
+        resultMeta.textContent = "時間が短すぎます。";
+        return;
+      }
+
+      const sunday = isSunday(date);
+
+      // 候補フィルタ
+      let candidates = spots.filter((s) => {
+        if (s.onlySunday && !sunday) return false;
+        if (transport === "walk" && s.area !== "中心部") return false;
+        return true;
+      });
+
+      // 営業時間ざっくりチェック
+      candidates = candidates.filter((s) => {
+        const open = parseTimeToMinutes(s.open);
+        const close = parseTimeToMinutes(s.close);
+        if (endMin < open || startMin > close) return false;
+        return true;
+      });
+
+      // スコアリング
+      const scored = candidates
+        .map((s) => {
+          let score = 0;
+          if (selectedThemes.length === 0) {
+            score = 1;
+          } else {
+            s.tags.forEach((t) => {
+              if (selectedThemes.includes(t)) score += 1;
+            });
+          }
+          if (s.tags.includes("local")) score += 0.3;
+          if (s.bestTime === "morning" && startMin < 12 * 60) score += 0.3;
+          if (s.bestTime === "noon" && startMin <= 14 * 60) score += 0.3;
+          if (s.bestTime === "afternoon" && startMin >= 12 * 60) score += 0.3;
+          return { spot: s, score };
+        })
+        .filter((s) => s.score > 0)
+        .sort((a, b) => b.score - a.score);
+
+      if (scored.length === 0) {
+        timeline = [];
+        renderTimeline();
+        clearMarkers();
+        resultMeta.textContent = "条件に合うスポットがありません。";
+        return;
+      }
+
+      let targetMinutes;
+      if (vibe === "slow") targetMinutes = totalAvailable * 0.5;
+      else if (vibe === "dense") targetMinutes = totalAvailable * 0.9;
+      else targetMinutes = totalAvailable * 0.7;
+
+      const selected = [];
+      let usedMinutes = 0;
+      for (const { spot } of scored) {
+        const stay = spot.typicalStayMin;
+        if (usedMinutes + stay > targetMinutes + 45) continue;
+        selected.push(spot);
+        usedMinutes += stay;
+      }
+      if (selected.length === 0) selected.push(scored[0].spot);
+
+      // 昼食自動挿入（ひろめ市場）
+      const hasLunch = selected.some((s) => s.tags.includes("food"));
+      if (!hasLunch) {
+        const hirome = spots.find((s) => s.id === "hirome");
+        if (hirome) selected.splice(1, 0, hirome);
+      }
+
+      timeline = selected.map((spot) => ({
+        spot,
+        start: 0,
+        end: 0,
+        moveMin: 0,
+      }));
+
+      layoutTimelineTimes();
+      renderTimeline();
+      addNumberedMarkers(timeline);
+
+      const stayTotal = timeline.reduce((a, b) => a + (b.end - b.start), 0);
+      resultMeta.textContent = `スポット数：${timeline.length} / 滞在時間：約${(
+        stayTotal / 60
+      ).toFixed(1)}時間`;
+    }
+
+    // 時間割り当て（単純に順番に詰める）
+    function layoutTimelineTimes() {
+      const startTime = document.getElementById("startTime").value || "09:00";
+      const endTime = document.getElementById("endTime").value || "18:00";
+      const startMin = parseTimeToMinutes(startTime);
+      const endMin = parseTimeToMinutes(endTime);
+
+      let current = startMin;
+      timeline.forEach((t, index) => {
+        let moveMin = 0;
+        if (index > 0) {
+          const prev = timeline[index - 1].spot;
+          moveMin = travelTimeMatrix[prev.area]?.[t.spot.area] ?? 15;
+        }
+        const s = current + moveMin;
+        const e = Math.min(s + t.spot.typicalStayMin, endMin);
+        t.start = s;
+        t.end = e;
+        t.moveMin = moveMin;
+        current = e;
+      });
+    }
+
+    // タイムライン描画
+    function renderTimeline() {
+      const container = document.getElementById("sortableTimeline");
+      container.innerHTML = "";
+      if (timeline.length === 0) {
+        container.innerHTML = `<p class="empty-state">
+          条件を選んで「つくる」を押すと、ここに1日のプランが表示されます。
+        </p>`;
+        return;
+      }
+      timeline.forEach((t) => {
+        const div = document.createElement("div");
+        div.className = "slot";
+        div.dataset.id = t.spot.id;
+        div.innerHTML = `
+          <div><strong>${t.spot.name}</strong></div>
+          <div class="time-range">
+            ${minutesToTimeStr(t.start)} 〜 ${minutesToTimeStr(t.end)}
+            <span class="move-time">（移動 ${t.moveMin}分）</span>
+          </div>
+          <div class="slot-delete" onclick="deleteSpot('${t.spot.id}')">削除</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // 候補リストの「＋追加」
+    document.addEventListener("click", (e) => {
+      if (e.target.classList.contains("spot-add-btn")) {
+        const id = e.target.dataset.id;
+        addSpotById(id);
+      }
+    });
+
+    // テーマチップ
+    document.querySelectorAll("#themeChips .chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        chip.classList.toggle("active");
+      });
+    });
+
+    // 移動手段チップ
+    document.querySelectorAll("#transportChips .chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        document
+          .querySelectorAll("#transportChips .chip")
+          .forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+      });
+    });
+
+    // 生成ボタン
+    document.getElementById("generateBtn").addEventListener("click", () => {
+      generateCourse();
+    });
+
+    // グローバルに使う関数を window に出す（ポップアップから呼ぶため）
+    window.addSpotById = addSpotById;
+    window.deleteSpot = deleteSpot;
+  </script>
+</body>
+</html>
